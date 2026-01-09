@@ -1,0 +1,14 @@
+[package]
+name = "xtce-codec"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "xtce_codec"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.27.1", features = ["extension-module"] }
+half = "2.4"
+encoding_rs = "0.8.35"

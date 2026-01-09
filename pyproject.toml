@@ -1,0 +1,65 @@
+[build-system]
+requires = ["maturin>=1.9,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "xtce-codec"
+version = "0.1.0"
+description = "Handles all encoding and decoding types and structures defined in the XTCE standard."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+
+[project.urls]
+Homepage = "https://github.com/nrmiersen/xtce-codec"
+Repository = "https://github.com/nrmiersen/xtce-codec"
+
+[project.optional-dependencies]
+dev = ["maturin>=1.9.6", "mypy>=1.0.0"]
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+python-source = "python"
+module-name = "xtce_codec.xtce_codec"
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "D", # pydocstyle
+    "I", # isort
+]
+ignore = [
+    "D203", # Conflicts with D211
+    "D213", # Conflicts with D212
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["xtce_codec"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[dependency-groups]
+test = ["pytest"]
