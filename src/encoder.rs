@@ -74,8 +74,6 @@ pub fn build_packet(
     recipe: Vec<Py<PyAny>>,
     values: &Bound<'_, PyDict>,
 ) -> PyResult<Vec<u8>> {
-    print!("Building packet from {} recipe items\n", recipe.len());
-
     let mut max_bit_offset = 0usize;
     for item_obj in &recipe {
         let recipe_item: &Bound<'_, PyDict> = item_obj.cast_bound::<PyDict>(py)?;
@@ -91,8 +89,6 @@ pub fn build_packet(
 
     let packet_size = (max_bit_offset + 7) / 8;
     let mut packet_bytes = vec![0u8; packet_size];
-    print!("  Packet size: {} bytes\n", packet_size);
-
     let mut current_offset_bits = 0usize;
 
     for item_obj in recipe {
@@ -117,8 +113,6 @@ pub fn build_packet(
         // Determine the actual offset for this parameter
         let actual_offset_bits = param_offset_bits.unwrap_or(current_offset_bits);
         current_offset_bits = actual_offset_bits + param_bits as usize;
-
-        print!("  {}: offset_bits={}\n", param_name, actual_offset_bits);
 
         // Encode the value based on encoding type
         let encoded_bytes = match param_encoding.to_lowercase().as_str() {
