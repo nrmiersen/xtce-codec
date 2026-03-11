@@ -69,11 +69,7 @@ fn encode_integer_to_bytes(value: u64, bits: u32, reverse_bits: bool) -> PyResul
 }
 
 #[pyfunction]
-pub fn build_packet(
-    py: Python,
-    recipe: Vec<Py<PyAny>>,
-    values: &Bound<'_, PyDict>,
-) -> PyResult<Vec<u8>> {
+pub fn build_packet(py: Python, recipe: Vec<Py<PyAny>>) -> PyResult<Vec<u8>> {
     let mut max_bit_offset = 0usize;
     for item_obj in &recipe {
         let recipe_item: &Bound<'_, PyDict> = item_obj.cast_bound::<PyDict>(py)?;
@@ -102,10 +98,10 @@ pub fn build_packet(
         let reverse_bits: bool = get_required_field(recipe_item, "reverse_bits")?;
         let param_offset_bits: Option<usize> = get_optional_field(recipe_item, "offset_bits")?;
 
-        // Get the value from the values dict
-        let value = values.get_item(&param_name)?.ok_or_else(|| {
+        // Get the value from the recipe item dict
+        let value = recipe_item.get_item("value")?.ok_or_else(|| {
             pyo3::exceptions::PyKeyError::new_err(format!(
-                "Missing value for parameter: '{}'",
+                "Recipe item '{}' missing required field: 'value'",
                 param_name
             ))
         })?;
@@ -240,11 +236,28 @@ pub fn build_packet(
         // Apply byte order
         let ordered_bytes = apply_byte_order_encode(&encoded_bytes, &byte_order)?;
 
-        // Write bytes into packet at the specified offset
-        let byte_start = actual_offset_bits / 8;
-        for (i, &byte) in ordered_bytes.iter().enumerate() {
-            if byte_start + i < packet_bytes.len() {
-                packet_bytes[byte_start + i] = byte;
+        // Write bits into packet at the specified offset
+        // The source value is right-aligned in the bytes, extract only param_bits
+        let mut source_value = 0u64;
+        for &byte in &ordered_bytes {
+            source_value = (source_value << 8) | (byte as u64);
+        }
+
+        // Now write param_bits from source_value into packet at actual_offset_bits
+        for bit_idx in 0..param_bits {
+            let source_bit_pos = param_bits - 1 - bit_idx; // MSB first
+            let source_bit = (source_value >> source_bit_pos) & 1;
+
+            let dest_bit_pos = actual_offset_bits + bit_idx as usize;
+            let dest_byte_idx = dest_bit_pos / 8;
+            let dest_bit_in_byte = 7 - (dest_bit_pos % 8); // MSB is bit 7
+
+            if dest_byte_idx < packet_bytes.len() {
+                if source_bit == 1 {
+                    packet_bytes[dest_byte_idx] |= 1 << dest_bit_in_byte;
+                } else {
+                    packet_bytes[dest_byte_idx] &= !(1 << dest_bit_in_byte);
+                }
             }
         }
     }

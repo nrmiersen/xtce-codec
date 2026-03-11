@@ -20,12 +20,8 @@ fn unpack_parameters(
 
 // Pack parameters into a packet
 #[pyfunction]
-fn pack_parameters(
-    py: Python,
-    recipe: Vec<Py<PyAny>>,
-    values: &Bound<'_, PyDict>,
-) -> PyResult<Vec<u8>> {
-    match encoder::build_packet(py, recipe, values) {
+fn pack_parameters(py: Python, recipe: Vec<Py<PyAny>>) -> PyResult<Vec<u8>> {
+    match encoder::build_packet(py, recipe) {
         Ok(packet_bytes) => Ok(packet_bytes),
         Err(e) => Err(pyo3::exceptions::PyValueError::new_err(e.to_string())),
     }

@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "xtce-codec"
-version = "0.1.0"
+version = "0.1.1"
 description = "Handles all encoding and decoding types and structures defined in the XTCE standard."
 readme = "README.md"
 license = "MIT"
@@ -20,7 +20,10 @@ Homepage = "https://github.com/nrmiersen/xtce-codec"
 Repository = "https://github.com/nrmiersen/xtce-codec"
 
 [project.optional-dependencies]
-dev = ["maturin>=1.9.6", "mypy>=1.0.0"]
+dev = [
+    "maturin>=1.9.6",
+    "mypy>=1.0.0",
+]
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
