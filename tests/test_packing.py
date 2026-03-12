@@ -55,18 +55,34 @@ class TestPacking:
             recipe=[
                 {
                     "name": "parameter1",
+                    "value": "ab",
                     "encoding": "us_ascii",
                     "bits": 16,
                     "byte_order": "little",
                     "reverse_bits": False,
                 },
             ],
-            values={
-                "parameter1": "ab",
-            },
         )
 
         print(result)
+
+    def test_utf8_string_is_zero_padded_not_repeated(self):
+        result = xtce_codec.pack_parameters(
+            recipe=[
+                {
+                    "name": "payload",
+                    "value": "TEST_STRING",
+                    "encoding": "utf8",
+                    "bits": 512,
+                    "byte_order": "big",
+                    "reverse_bits": False,
+                },
+            ],
+        )
+
+        assert len(result) == 64
+        assert result[:11] == b"TEST_STRING"
+        assert result[11:] == b"\x00" * 53
 
 
 if __name__ == "__main__":

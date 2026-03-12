@@ -30,7 +30,7 @@ class TestUnpacking:
                 },
                 {
                     "name": "parameter4",
-                    "encoding": "unsignedd",
+                    "encoding": "unsigned",
                     "bits": 8,
                     "byte_order": "big",
                     "reverse_bits": False,

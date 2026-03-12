@@ -236,19 +236,24 @@ pub fn build_packet(py: Python, recipe: Vec<Py<PyAny>>) -> PyResult<Vec<u8>> {
         // Apply byte order
         let ordered_bytes = apply_byte_order_encode(&encoded_bytes, &byte_order)?;
 
-        // Write bits into packet at the specified offset
-        // The source value is right-aligned in the bytes, extract only param_bits
-        let mut source_value = 0u64;
-        for &byte in &ordered_bytes {
-            source_value = (source_value << 8) | (byte as u64);
-        }
+        // Write bits into packet at the specified offset.
+        // When the source is wider than param_bits, keep the rightmost param_bits.
+        // When the source is narrower than param_bits, pad trailing bits with zero.
+        let source_total_bits = ordered_bytes.len() * 8;
+        let field_bits = param_bits as usize;
+        let source_start_bit = source_total_bits.saturating_sub(field_bits);
 
-        // Now write param_bits from source_value into packet at actual_offset_bits
-        for bit_idx in 0..param_bits {
-            let source_bit_pos = param_bits - 1 - bit_idx; // MSB first
-            let source_bit = (source_value >> source_bit_pos) & 1;
+        for bit_idx in 0..field_bits {
+            let source_bit_abs = source_start_bit + bit_idx;
+            let source_bit = if source_bit_abs < source_total_bits {
+                let source_byte_idx = source_bit_abs / 8;
+                let source_bit_in_byte = 7 - (source_bit_abs % 8);
+                (ordered_bytes[source_byte_idx] >> source_bit_in_byte) & 1
+            } else {
+                0
+            };
 
-            let dest_bit_pos = actual_offset_bits + bit_idx as usize;
+            let dest_bit_pos = actual_offset_bits + bit_idx;
             let dest_byte_idx = dest_bit_pos / 8;
             let dest_bit_in_byte = 7 - (dest_bit_pos % 8); // MSB is bit 7
 
