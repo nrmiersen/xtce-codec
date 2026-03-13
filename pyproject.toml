@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "xtce-codec"
-version = "0.1.0a3"
+version = "0.1.0a4"
 description = "Handles all encoding and decoding types and structures defined in the XTCE standard."
 readme = "README.md"
 license = "MIT"

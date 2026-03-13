@@ -128,99 +128,99 @@ pub fn build_packet(py: Python, recipe: Vec<Py<PyAny>>) -> PyResult<Vec<u8>> {
                 }
                 encode_integer_to_bytes(int_value, param_bits, reverse_bits)?
             }
-            "ones_complement" => {
+            "ones_complement" | "onesComplement" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_ones_complement(int_value, param_bits)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "sign_magnitude" => {
+            "sign_magnitude" | "signMagnitude" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_sign_magnitude(int_value, param_bits)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "twos_complement" => {
+            "twos_complement" | "twosComplement" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_twos_complement(int_value, param_bits)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
 
             // BCD encodings
-            "unpacked_bcd" => {
+            "bcd" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_unpacked_bcd(int_value, param_bits, false)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "unpacked_bcd_signed" => {
+            "bcd_signed" | "bcd-signed" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_unpacked_bcd(int_value, param_bits, true)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "packed_bcd" => {
+            "packed_bcd" | "packed-bcd" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_packed_bcd(int_value, param_bits, false)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "packed_bcd_signed" => {
+            "packed_bcd_signed" | "packed-bcd-signed" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_packed_bcd(int_value, param_bits, true)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
 
             // IEEE 754 floating point
-            "ieee754_f16" => {
+            "ieee754_f16" | "ieee754-f16" => {
                 let float_value: f32 = value.extract()?;
                 let encoded = encode_ieee754_f16(float_value)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "ieee754_f32" => {
+            "ieee754_f32" | "ieee754-f32" => {
                 let float_value: f32 = value.extract()?;
                 let encoded = encode_ieee754_f32(float_value)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "ieee754_f64" => {
+            "ieee754_f64" | "ieee754-f64" => {
                 let float_value: f64 = value.extract()?;
                 let encoded = encode_ieee754_f64(float_value)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
 
             // String encodings
-            "us_ascii" => {
+            "us_ascii" | "us-ascii" => {
                 let string_value: String = value.extract()?;
                 encode_us_ascii(&string_value)?
             }
-            "iso_8859_1" | "latin1" => {
+            "iso_8859_1" | "iso-8859-1" => {
                 let string_value: String = value.extract()?;
                 encode_iso_8859_1(&string_value)?
             }
-            "windows_1252" => {
+            "windows_1252" | "windows-1252" => {
                 let string_value: String = value.extract()?;
                 encode_windows_1252(&string_value)?
             }
-            "utf8" => {
+            "utf8" | "utf-8" => {
                 let string_value: String = value.extract()?;
                 encode_utf8(&string_value)?
             }
-            "utf16" => {
+            "utf16" | "utf-16" => {
                 let string_value: String = value.extract()?;
                 encode_utf16(&string_value)?
             }
-            "utf16le" => {
+            "utf16le" | "utf-16le" => {
                 let string_value: String = value.extract()?;
                 encode_utf16le(&string_value)?
             }
-            "utf16be" => {
+            "utf16be" | "utf-16be" => {
                 let string_value: String = value.extract()?;
                 encode_utf16be(&string_value)?
             }
-            "utf32" => {
+            "utf32" | "utf-32" => {
                 let string_value: String = value.extract()?;
                 encode_utf32(&string_value)?
             }
-            "utf32le" => {
+            "utf32le" | "utf-32le" => {
                 let string_value: String = value.extract()?;
                 encode_utf32le(&string_value)?
             }
-            "utf32be" => {
+            "utf32be" | "utf-32be" => {
                 let string_value: String = value.extract()?;
                 encode_utf32be(&string_value)?
             }

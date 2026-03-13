@@ -120,51 +120,51 @@ pub fn process_recipe(
             "unsigned" => {
                 results.set_item(&param_name, final_value)?;
             }
-            "ones_complement" => {
+            "ones_complement" | "onescomplement" => {
                 let signed_value = decode_ones_complement(final_value, param_bits)?;
                 results.set_item(&param_name, signed_value)?;
             }
-            "sign_magnitude" => {
+            "sign_magnitude" | "signmagnitude" => {
                 let signed_value = decode_sign_magnitude(final_value, param_bits)?;
                 results.set_item(&param_name, signed_value)?;
             }
-            "twos_complement" => {
+            "twos_complement" | "twoscomplement" => {
                 let signed_value = decode_twos_complement(final_value, param_bits)?;
                 results.set_item(&param_name, signed_value)?;
             }
 
             // BCD encodings
-            "unpacked_bcd" => {
+            "bcd" => {
                 let value = decode_unpacked_bcd(final_value, param_bits, false)?;
                 results.set_item(&param_name, value)?;
             }
-            "unpacked_bcd_signed" => {
+            "bcd_signed" | "bcd-signed" => {
                 let value = decode_unpacked_bcd(final_value, param_bits, true)?;
                 results.set_item(&param_name, value)?;
             }
-            "packed_bcd" => {
+            "packed_bcd" | "packed-bcd" => {
                 let value = decode_packed_bcd(final_value, param_bits, false)?;
                 results.set_item(&param_name, value)?;
             }
-            "packed_bcd_signed" => {
+            "packed_bcd_signed" | "packed-bcd-signed" => {
                 let value = decode_packed_bcd(final_value, param_bits, true)?;
                 results.set_item(&param_name, value)?;
             }
 
             // IEEE 754 floating point encodings
-            "ieee754_f16" => {
+            "ieee754_f16" | "ieee754-f16" => {
                 let float_value = decode_ieee754_f16(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
-            "ieee754_f32" => {
+            "ieee754_f32" | "ieee754-f32" => {
                 let float_value = decode_ieee754_f32(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
-            "ieee754_f64" => {
+            "ieee754_f64" | "ieee754-f64" => {
                 let float_value = decode_ieee754_f64(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
-            "ieee754_f128" => {
+            "ieee754_f128" | "ieee754-f128" => {
                 // Need to handle 128-bit values specially
                 if param_bits > 64 {
                     return Err(pyo3::exceptions::PyValueError::new_err(
@@ -176,97 +176,97 @@ pub fn process_recipe(
             }
 
             // IEEE 754-1985 encodings
-            "ieee754_1985_f32" => {
+            "ieee754_1985_f32" | "ieee754-1985-f32" => {
                 let float_value = decode_ieee754_1985_f32(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
-            "ieee754_1985_f64" => {
+            "ieee754_1985_f64" | "ieee754-1985-f64" => {
                 let float_value = decode_ieee754_1985_f64(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
-            "ieee754_1985_f80" => {
+            "ieee754_1985_f80" | "ieee754-1985-f80" => {
                 let float_value = decode_ieee754_1985_f80(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
 
             // MIL-STD-1750A encodings
-            "mil_std_1750a_f32" => {
+            "mil_std_1750a_f32" | "mil-std-1750a-f32" => {
                 let float_value = decode_mil_std_1750a_f32(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
-            "mil_std_1750a_f48" => {
+            "mil_std_1750a_f48" | "mil-std-1750a-f48" => {
                 let float_value = decode_mil_std_1750a_f48(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
 
             // DEC encodings
-            "dec_f32" => {
+            "dec_f32" | "dec-f32" => {
                 let float_value = decode_dec_f32(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
-            "dec_f64" => {
+            "dec_f64" | "dec-f64" => {
                 let float_value = decode_dec_f64(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
 
             // IBM encodings
-            "ibm_f32" => {
+            "ibm_f32" | "ibm-f32" => {
                 let float_value = decode_ibm_f32(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
-            "ibm_f64" => {
+            "ibm_f64" | "ibm-f64" => {
                 let float_value = decode_ibm_f64(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
 
             // Texas Instruments encodings
-            "ti_f32" => {
+            "ti_f32" | "ti-f32" => {
                 let float_value = decode_ti_f32(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
-            "ti_f40" => {
+            "ti_f40" | "ti-f40" => {
                 let float_value = decode_ti_f40(final_value)?;
                 results.set_item(&param_name, float_value)?;
             }
 
             // String encodings
-            "us_ascii" => {
+            "us_ascii" | "us-ascii" => {
                 let string_value = decode_us_ascii(&ordered_bytes)?;
                 results.set_item(&param_name, string_value)?;
             }
-            "iso_8859_1" | "latin1" => {
+            "iso_8859_1" | "iso-8859-1" | "latin1" => {
                 let string_value = decode_iso_8859_1(&ordered_bytes)?;
                 results.set_item(&param_name, string_value)?;
             }
-            "windows_1252" => {
+            "windows_1252" | "windows-1252" => {
                 let string_value = decode_windows_1252(&ordered_bytes)?;
                 results.set_item(&param_name, string_value)?;
             }
-            "utf8" => {
+            "utf8" | "utf-8" => {
                 let string_value = decode_utf8(&ordered_bytes)?;
                 results.set_item(&param_name, string_value)?;
             }
-            "utf16" => {
+            "utf16" | "utf-16" => {
                 let string_value = decode_utf16(&ordered_bytes)?;
                 results.set_item(&param_name, string_value)?;
             }
-            "utf16le" => {
+            "utf16le" | "utf-16le" => {
                 let string_value = decode_utf16le(&ordered_bytes)?;
                 results.set_item(&param_name, string_value)?;
             }
-            "utf16be" => {
+            "utf16be" | "utf-16be" => {
                 let string_value = decode_utf16be(&ordered_bytes)?;
                 results.set_item(&param_name, string_value)?;
             }
-            "utf32" => {
+            "utf32" | "utf-32" => {
                 let string_value = decode_utf32(&ordered_bytes)?;
                 results.set_item(&param_name, string_value)?;
             }
-            "utf32le" => {
+            "utf32le" | "utf-32le" => {
                 let string_value = decode_utf32le(&ordered_bytes)?;
                 results.set_item(&param_name, string_value)?;
             }
-            "utf32be" => {
+            "utf32be" | "utf-32be" => {
                 let string_value = decode_utf32be(&ordered_bytes)?;
                 results.set_item(&param_name, string_value)?;
             }
