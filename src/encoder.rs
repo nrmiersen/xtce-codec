@@ -211,17 +211,17 @@ pub fn build_packet(py: Python, recipe: Vec<Py<PyAny>>) -> PyResult<Vec<u8>> {
                 }
                 encode_integer_to_bytes(int_value, param_bits, reverse_bits)?
             }
-            "ones_complement" | "onesComplement" => {
+            "ones_complement" | "ones-complement" | "onescomplement" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_ones_complement(int_value, param_bits)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "sign_magnitude" | "signMagnitude" => {
+            "sign_magnitude" | "sign-magnitude" | "signmagnitude" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_sign_magnitude(int_value, param_bits)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "twos_complement" | "twosComplement" => {
+            "twos_complement" | "twos-complement" | "twoscomplement" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_twos_complement(int_value, param_bits)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
@@ -233,17 +233,17 @@ pub fn build_packet(py: Python, recipe: Vec<Py<PyAny>>) -> PyResult<Vec<u8>> {
                 let encoded = encode_unpacked_bcd(int_value, param_bits, false)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "bcd_signed" | "bcd-signed" => {
+            "bcd_signed" | "bcd-signed" | "bcdsigned" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_unpacked_bcd(int_value, param_bits, true)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "packed_bcd" | "packed-bcd" => {
+            "packed_bcd" | "packed-bcd" | "packedbcd" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_packed_bcd(int_value, param_bits, false)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
-            "packed_bcd_signed" | "packed-bcd-signed" => {
+            "packed_bcd_signed" | "packed-bcd-signed" | "packedbcdsigned" => {
                 let int_value: i64 = value.extract()?;
                 let encoded = encode_packed_bcd(int_value, param_bits, true)?;
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
@@ -256,7 +256,7 @@ pub fn build_packet(py: Python, recipe: Vec<Py<PyAny>>) -> PyResult<Vec<u8>> {
             }
 
             // Float encodings
-            "ieee754" | "ieee-754" => match param_bits {
+            "ieee_754" | "ieee-754" | "ieee754" => match param_bits {
                 16 => {
                     let float_value: f32 = value.extract()?;
                     let encoded = encode_ieee754_f16(float_value)?;
@@ -284,7 +284,8 @@ pub fn build_packet(py: Python, recipe: Vec<Py<PyAny>>) -> PyResult<Vec<u8>> {
                     )));
                 }
             },
-            "ieee754_1985" | "ieee754-1985" => match param_bits {
+            "ieee754_1985" | "ieee754-1985" | "ieee_754_1985" | "ieee_754-1985" => match param_bits
+            {
                 32 => {
                     let float_value: f32 = value.extract()?;
                     let encoded = encode_ieee754_1985_f32(float_value)?;
@@ -307,7 +308,7 @@ pub fn build_packet(py: Python, recipe: Vec<Py<PyAny>>) -> PyResult<Vec<u8>> {
                     )));
                 }
             },
-            "mil_std_1750a" | "mil-std-1750a" => match param_bits {
+            "mil_std_1750a" | "mil-std-1750a" | "mil_std-1750a" => match param_bits {
                 32 => {
                     let float_value: f32 = value.extract()?;
                     let encoded = encode_mil_std_1750a_f32(float_value)?;
@@ -381,43 +382,43 @@ pub fn build_packet(py: Python, recipe: Vec<Py<PyAny>>) -> PyResult<Vec<u8>> {
             },
 
             // String encodings
-            "us_ascii" | "us-ascii" => {
+            "us_ascii" | "us-ascii" | "usascii" => {
                 let string_value: String = value.extract()?;
                 encode_us_ascii(&string_value)?
             }
-            "iso_8859_1" | "iso-8859-1" => {
+            "iso_8859_1" | "iso-8859-1" | "iso8859_1" | "iso8859-1" => {
                 let string_value: String = value.extract()?;
                 encode_iso_8859_1(&string_value)?
             }
-            "windows_1252" | "windows-1252" => {
+            "windows_1252" | "windows-1252" | "windows1252" => {
                 let string_value: String = value.extract()?;
                 encode_windows_1252(&string_value)?
             }
-            "utf8" | "utf-8" => {
+            "utf_8" | "utf-8" | "utf8" => {
                 let string_value: String = value.extract()?;
                 encode_utf8(&string_value)?
             }
-            "utf16" | "utf-16" => {
+            "utf_16" | "utf-16" | "utf16" => {
                 let string_value: String = value.extract()?;
                 encode_utf16(&string_value)?
             }
-            "utf16le" | "utf-16le" => {
+            "utf_16_le" | "utf-16le" | "utf16le" => {
                 let string_value: String = value.extract()?;
                 encode_utf16le(&string_value)?
             }
-            "utf16be" | "utf-16be" => {
+            "utf_16_be" | "utf-16be" | "utf16be" => {
                 let string_value: String = value.extract()?;
                 encode_utf16be(&string_value)?
             }
-            "utf32" | "utf-32" => {
+            "utf_32" | "utf-32" | "utf32" => {
                 let string_value: String = value.extract()?;
                 encode_utf32(&string_value)?
             }
-            "utf32le" | "utf-32le" => {
+            "utf_32_le" | "utf-32le" | "utf32le" => {
                 let string_value: String = value.extract()?;
                 encode_utf32le(&string_value)?
             }
-            "utf32be" | "utf-32be" => {
+            "utf_32_be" | "utf-32be" | "utf32be" => {
                 let string_value: String = value.extract()?;
                 encode_utf32be(&string_value)?
             }
