@@ -42,8 +42,15 @@ fn apply_byte_order_encode(bytes_in: &[u8], byte_order: &str) -> PyResult<Vec<u8
     }
 }
 
-// Helper function to convert an integer value to bytes in big endian order.
+// Helper function to convert an integer value to bytes in big endian order
 fn encode_integer_to_bytes(value: u64, bits: u32, reverse_bits: bool) -> PyResult<Vec<u8>> {
+    if bits > 64 {
+        return Err(pyo3::exceptions::PyValueError::new_err(format!(
+            "Cannot encode {} bits from a 64-bit value",
+            bits
+        )));
+    }
+
     let byte_count = ((bits + 7) / 8) as usize;
 
     let final_value = if reverse_bits {
@@ -66,6 +73,82 @@ fn encode_integer_to_bytes(value: u64, bits: u32, reverse_bits: bool) -> PyResul
     }
 
     Ok(bytes)
+}
+
+// Helper function to convert up to a 128-bit integer value to bytes in big endian order
+fn encode_integer_to_bytes_u128(value: u128, bits: u32, reverse_bits: bool) -> PyResult<Vec<u8>> {
+    if bits > 128 {
+        return Err(pyo3::exceptions::PyValueError::new_err(format!(
+            "Cannot encode {} bits from a 128-bit value",
+            bits
+        )));
+    }
+
+    let byte_count = ((bits + 7) / 8) as usize;
+
+    let final_value = if reverse_bits {
+        // Reverse the bits within the specified bit width
+        let mut reversed = 0u128;
+        for bit_pos in 0..bits {
+            if (value >> bit_pos) & 1 == 1 {
+                reversed |= 1u128 << (bits - 1 - bit_pos);
+            }
+        }
+        reversed
+    } else {
+        value
+    };
+
+    // Convert to bytes in big endian order
+    let mut bytes = Vec::with_capacity(byte_count);
+    for i in (0..byte_count).rev() {
+        bytes.push(((final_value >> (i * 8)) & 0xFF) as u8);
+    }
+
+    Ok(bytes)
+}
+
+// Helper function to normalize raw bytes to a field width and optionally reverse bit order
+fn encode_binary_to_bytes(value: &[u8], bits: u32, reverse_bits: bool) -> PyResult<Vec<u8>> {
+    let byte_count = ((bits + 7) / 8) as usize;
+    if byte_count == 0 {
+        return Ok(Vec::new());
+    }
+
+    // Keep the rightmost bytes and left-pad with zeros when the input is too short
+    let mut masked = vec![0u8; byte_count];
+    let src_start = value.len().saturating_sub(byte_count);
+    let src = &value[src_start..];
+    let dst_start = byte_count - src.len();
+    masked[dst_start..].copy_from_slice(src);
+
+    // Mask out bits outside the declared field width
+    let unused_top_bits = (byte_count * 8) - bits as usize;
+    if unused_top_bits > 0 {
+        masked[0] &= 0xFF >> unused_top_bits;
+    }
+
+    if !reverse_bits {
+        return Ok(masked);
+    }
+
+    let total_bits = byte_count * 8;
+    let mut reversed = vec![0u8; byte_count];
+    for src_lsb_idx in 0..bits as usize {
+        let src_abs = total_bits - 1 - src_lsb_idx;
+        let src_byte = src_abs / 8;
+        let src_bit = 7 - (src_abs % 8);
+        let bit = (masked[src_byte] >> src_bit) & 1;
+        if bit == 1 {
+            let dst_lsb_idx = bits as usize - 1 - src_lsb_idx;
+            let dst_abs = total_bits - 1 - dst_lsb_idx;
+            let dst_byte = dst_abs / 8;
+            let dst_bit = 7 - (dst_abs % 8);
+            reversed[dst_byte] |= 1 << dst_bit;
+        }
+    }
+
+    Ok(reversed)
 }
 
 #[pyfunction]
@@ -166,22 +249,136 @@ pub fn build_packet(py: Python, recipe: Vec<Py<PyAny>>) -> PyResult<Vec<u8>> {
                 encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
             }
 
-            // IEEE 754 floating point
-            "ieee754_f16" | "ieee754-f16" => {
-                let float_value: f32 = value.extract()?;
-                let encoded = encode_ieee754_f16(float_value)?;
-                encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+            // Raw binary bytes
+            "binary" => {
+                let binary_value: Vec<u8> = value.extract()?;
+                encode_binary_to_bytes(&binary_value, param_bits, reverse_bits)?
             }
-            "ieee754_f32" | "ieee754-f32" => {
-                let float_value: f32 = value.extract()?;
-                let encoded = encode_ieee754_f32(float_value)?;
-                encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
-            }
-            "ieee754_f64" | "ieee754-f64" => {
-                let float_value: f64 = value.extract()?;
-                let encoded = encode_ieee754_f64(float_value)?;
-                encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
-            }
+
+            // Float encodings
+            "ieee754" | "ieee-754" => match param_bits {
+                16 => {
+                    let float_value: f32 = value.extract()?;
+                    let encoded = encode_ieee754_f16(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                32 => {
+                    let float_value: f32 = value.extract()?;
+                    let encoded = encode_ieee754_f32(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                64 => {
+                    let float_value: f64 = value.extract()?;
+                    let encoded = encode_ieee754_f64(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                128 => {
+                    let float_value: f64 = value.extract()?;
+                    let encoded = encode_ieee754_f128(float_value)?;
+                    encode_integer_to_bytes_u128(encoded, param_bits, reverse_bits)?
+                }
+                _ => {
+                    return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                        "Unsupported IEEE 754 bit width: {} (supported: 16, 32, 64, 128)",
+                        param_bits
+                    )));
+                }
+            },
+            "ieee754_1985" | "ieee754-1985" => match param_bits {
+                32 => {
+                    let float_value: f32 = value.extract()?;
+                    let encoded = encode_ieee754_1985_f32(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                64 => {
+                    let float_value: f64 = value.extract()?;
+                    let encoded = encode_ieee754_1985_f64(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                80 => {
+                    let float_value: f64 = value.extract()?;
+                    let encoded = encode_ieee754_1985_f80(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                _ => {
+                    return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                        "Unsupported IEEE 754-1985 bit width: {} (supported: 32, 64, 80)",
+                        param_bits
+                    )));
+                }
+            },
+            "mil_std_1750a" | "mil-std-1750a" => match param_bits {
+                32 => {
+                    let float_value: f32 = value.extract()?;
+                    let encoded = encode_mil_std_1750a_f32(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                48 => {
+                    let float_value: f64 = value.extract()?;
+                    let encoded = encode_mil_std_1750a_f48(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                _ => {
+                    return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                        "Unsupported MIL-STD-1750A bit width: {} (supported: 32, 48)",
+                        param_bits
+                    )));
+                }
+            },
+            "dec" => match param_bits {
+                32 => {
+                    let float_value: f32 = value.extract()?;
+                    let encoded = encode_dec_f32(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                64 => {
+                    let float_value: f64 = value.extract()?;
+                    let encoded = encode_dec_f64(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                _ => {
+                    return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                        "Unsupported DEC float bit width: {} (supported: 32, 64)",
+                        param_bits
+                    )));
+                }
+            },
+            "ibm" => match param_bits {
+                32 => {
+                    let float_value: f32 = value.extract()?;
+                    let encoded = encode_ibm_f32(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                64 => {
+                    let float_value: f64 = value.extract()?;
+                    let encoded = encode_ibm_f64(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                _ => {
+                    return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                        "Unsupported IBM float bit width: {} (supported: 32, 64)",
+                        param_bits
+                    )));
+                }
+            },
+            "ti" => match param_bits {
+                32 => {
+                    let float_value: f32 = value.extract()?;
+                    let encoded = encode_ti_f32(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                40 => {
+                    let float_value: f64 = value.extract()?;
+                    let encoded = encode_ti_f40(float_value)?;
+                    encode_integer_to_bytes(encoded, param_bits, reverse_bits)?
+                }
+                _ => {
+                    return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                        "Unsupported TI float bit width: {} (supported: 32, 40)",
+                        param_bits
+                    )));
+                }
+            },
 
             // String encodings
             "us_ascii" | "us-ascii" => {
